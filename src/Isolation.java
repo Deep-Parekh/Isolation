@@ -21,5 +21,8 @@ public class Isolation {
 		else if (input.charAt(0) == 'O')
 			first = Player.Opponent;
 		IsolationGame game = new IsolationGame(first);
+		while(!game.isOver()) {
+			game.play();
+		}
 	}
 }
