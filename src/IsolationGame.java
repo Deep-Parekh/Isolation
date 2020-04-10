@@ -1,3 +1,6 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -13,16 +16,18 @@ import java.util.Scanner;
  */
 public class IsolationGame {
 	
-	private Player firstPlayer;
 	private Player currentPlayer;
+	private Player nextPlayer;
 	private Board state;
 	private String status;
 	private HashMap<Player, Queue<Coordinate>> moveTable;
+	private int timeLimit;
 	
-	public IsolationGame(Player first) {
-		this.firstPlayer = first;
+	public IsolationGame(Player first, Player second, int timeLimit) {
 		this.currentPlayer = first;
-		this.state = new Board();
+		this.nextPlayer = second;
+		this.state = new Board(first);
+		this.timeLimit = timeLimit;
 		this.moveTable = new HashMap<Player, Queue<Coordinate>>();
 		moveTable.put(Player.Computer, new LinkedList<Coordinate>());
 		moveTable.put(Player.Opponent, new LinkedList<Coordinate>());
@@ -34,27 +39,37 @@ public class IsolationGame {
 			if(this.currentPlayer == Player.Opponent)
 				move = getOpponentMove();
 			else 
-				move = maxMove();
+				move = convertMove("G8");//getOpponentMove();			// Should be maxMove()
 			moveTable.get(this.currentPlayer).add(move);
 			state.move(this.currentPlayer, move);
-			
-		} catch (InvalidMoveException e) {
+			Player temp = this.currentPlayer;
+			this.currentPlayer = this.nextPlayer;
+			this.nextPlayer = temp;
+		} catch (Exception e) {
 			System.out.println(e.getMessage());
 		}
 			
 	}
 	
-	private Coordinate maxMove() {
+	/*
+	 * MiniMax with AlphaBet pruning and Iterative Deepening
+	 */
+	private Coordinate maxMove(){
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	public Coordinate getOpponentMove() throws InvalidMoveException {
-		Scanner kb = new Scanner(System.in);
-		System.out.println("Enter Opponent's move: ");
-		String input = kb.nextLine().trim().toUpperCase();
-		Coordinate move = convertMove(input);
-		kb.close();
+		BufferedReader kb = new BufferedReader(new InputStreamReader(System.in));
+		System.out.print("Enter Opponent's move: ");
+		Coordinate move = null;
+		try {
+			String input = kb.readLine();
+			input = input.trim().toUpperCase();
+			move = convertMove(input);
+		} catch(IOException e) {
+			System.out.println(e.getMessage());
+		}
 		if(!state.validMovement(move, currentPlayer))
 			throw new InvalidMoveException("Invalid move");
 		return move;
@@ -77,6 +92,16 @@ public class IsolationGame {
 	
 	@Override
 	public String toString() {
-		return "";
+		String rtn = new String();
+		char[][] board = this.state.getState();
+		rtn += "\t\t1\t2\t3\t4\t5\t6\t7\t8\t\n";
+		for(int i = 0; i < Board.SIZE; ++i){
+			rtn += ("\t" + (char)('A' + i) + "\t");
+			for(int j = 0; j < Board.SIZE; ++j){
+				rtn += board[i][j] + "\t";
+			}
+			rtn = rtn + "\n";
+		}
+		return rtn;
 	}
 }
