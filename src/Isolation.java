@@ -26,8 +26,7 @@ public class Isolation {
 			second = Player.Computer;
 		}
 		IsolationGame game = new IsolationGame(first, second, 20);
-//		while(!game.isOver()) {
-		while(true) {
+		while(!game.isOver()) {
 			System.out.println(game);
 			game.play();
 		}

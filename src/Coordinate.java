@@ -22,4 +22,12 @@ public class Coordinate{
 			return false;
 		return true;
 	}
+	
+	@Override
+	public String toString() {
+		String coordinate = "";
+		coordinate += (char)('A' + (int)x);
+		coordinate += ((y + 1) + "");
+		return coordinate;
+	}
 }
