@@ -21,7 +21,10 @@ public class Board {
 	private char[][] state;
 	private Coordinate computer;
 	private Coordinate opponent;
-	private int score;		
+	private int score;	
+	private Heuristic heuristic;
+	public HashSet<Board> opponentSuccessors;
+	public HashSet<Board> computerSuccessors;
 	
 	public Board(Player first) {
 		state = new char[SIZE][SIZE];
@@ -38,6 +41,8 @@ public class Board {
 			this.opponent = new Coordinate((byte)7, (byte)7);
 			this.state[7][7] = Board.O;
 		}
+		this.opponentSuccessors = this.getSuccessors(Player.Opponent);
+		this.computerSuccessors = this.getSuccessors(Player.Computer);
 		this.generateScore();
 	}
 	
@@ -45,6 +50,7 @@ public class Board {
 		this.state = copyState(board.state);
 		this.computer = computer;
 		this.opponent = board.opponent;
+		this.heuristic = board.heuristic;
 		this.move(Player.Computer, computer);
 		this.generateScore();
 	}
@@ -61,7 +67,7 @@ public class Board {
 	 * Utility function that generates the score (value) of the current board
 	 */
 	private void generateScore() {
-		// TODO
+		this.score = this.heuristic.getScore(state);
 	}
 	
 	private void initializeBoard() {
@@ -89,6 +95,8 @@ public class Board {
 			this.opponent = move;
 			this.state[this.opponent.x][this.opponent.y] = O;
 		}
+		this.opponentSuccessors = this.getSuccessors(Player.Opponent);
+		this.computerSuccessors = this.getSuccessors(Player.Computer);
 		generateScore();
 	}
 	
@@ -97,7 +105,7 @@ public class Board {
 	}
 	
 	public boolean isTerminal() {
-		if(this.getSuccessors(Player.Computer).size() == 0 || this.getSuccessors(Player.Opponent).size() == 0)
+		if(this.computerSuccessors.size() == 0 || this.opponentSuccessors.size() == 0)
 			return true;
 		return false;
 	}
@@ -117,8 +125,9 @@ public class Board {
 			y = this.opponent.y;
 		}
 		
-		for(int i  = 1; ; ++i) {
-			if(x + i < SIZE && this.state[x+i][y] != USED) {	// Up
+		// Up
+		for(int i  = 1; x + i < SIZE; ++i) {
+			if(this.state[x+i][y] != USED) {	
 				Board neighbor = new Board(this, new Coordinate((byte)(x + i), y));
 				neighbors.add(neighbor);
 			}
@@ -126,8 +135,9 @@ public class Board {
 				break;
 		}
 
-		for(int i = 1; ; ++i) {
-			if(x - i >= 0 && this.state[x-i][y] != USED) {		// Down
+		// Down
+		for(int i = 1; x - i >= 0; ++i) {
+			if(this.state[x-i][y] != USED) {		
 				Board neighbor = new Board(this, new Coordinate((byte)(x - i), y));
 				neighbors.add(neighbor);
 			}
@@ -135,8 +145,9 @@ public class Board {
 				break;
 		}
 		
-		for(int i = 1; ; ++i) {
-			if(y + i < SIZE && this.state[x][y+i] != USED) {	// Right
+		// Right
+		for(int i = 1; y + i < SIZE; ++i) {
+			if(this.state[x][y+i] != USED) {	
 				Board neighbor = new Board(this, new Coordinate(x, (byte)(y + i)));
 				neighbors.add(neighbor);
 			}
@@ -144,8 +155,9 @@ public class Board {
 				break;
 		}
 		
-		for(int i = 1; ; ++i) {
-			if(y - i >= 0 && this.state[x][y-i] != USED) {	// Left
+		// Left
+		for(int i = 1; y - i >= 0; ++i) {
+			if(this.state[x][y-i] != USED) {	
 				Board neighbor = new Board(this, new Coordinate(x, (byte)(y - i)));
 				neighbors.add(neighbor);
 			}
@@ -153,8 +165,9 @@ public class Board {
 				break;
 		}
 		
-		for(int i = 1; ;++i) {
-			if(x + i < SIZE && y + i < SIZE && this.state[x+i][y+i] != USED) {	// RightUp
+		// RightUp
+		for(int i = 1; x + i < SIZE && y + i < SIZE;++i) {
+			if(this.state[x+i][y+i] != USED) {	
 				Board neighbor = new Board(this, new Coordinate((byte)(x + i), (byte)(y + i)));
 				neighbors.add(neighbor);
 			}
@@ -162,8 +175,9 @@ public class Board {
 				break;
 		}
 		
-		for(int i = 1; ; ++i) {
-			if(x - i >= 0 && y + i < SIZE && this.state[x-i][y+i] != USED) {		// RightDown
+		// RightDown
+		for(int i = 1; x - i >= 0 && y + i < SIZE; ++i) {
+			if(this.state[x-i][y+i] != USED) {		
 				Board neighbor = new Board(this, new Coordinate((byte)(x - i), (byte)(y + i)));
 				neighbors.add(neighbor);
 			}
@@ -171,8 +185,9 @@ public class Board {
 				break;
 		}
 		
-		for(int i = 1; ; ++i) {
-			if(x + i < SIZE && y - i >= 0 && this.state[x+i][y-i] != USED) {	// LeftUp
+		// LeftUp
+		for(int i = 1; x + i < SIZE && y - i >= 0; ++i) {
+			if(this.state[x+i][y-i] != USED) {	
 				Board neighbor = new Board(this, new Coordinate((byte)(x + i), (byte)(y - i)));
 				neighbors.add(neighbor);
 			}
@@ -180,8 +195,9 @@ public class Board {
 				break;
 		}
 		
-		for(int i = 1; ; ++i) {
-			if(x - i >= 0 && y - i >= 0 && this.state[x-i][y-i] != USED) {		// LeftDown
+		// LeftDown
+		for(int i = 1; x - i >= 0 && y - i >= 0; ++i) {
+			if(this.state[x-i][y-i] != USED) {		
 				Board neighbor = new Board(this, new Coordinate((byte)(x - i), (byte)(y - i)));
 				neighbors.add(neighbor);
 			}
