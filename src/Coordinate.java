@@ -18,8 +18,16 @@ public class Coordinate{
 	}
 	
 	public boolean isInvalid() {
-		if(this.x >= SIZE || this.y >= SIZE)
+		if(this.x >= SIZE || this.y >= SIZE || this.x < 0 || this.y < 0)
 			return false;
 		return true;
+	}
+	
+	@Override
+	public String toString() {
+		String coordinate = "";
+		coordinate += (char)('A' + (int)x);
+		coordinate += ((y + 1) + "");
+		return coordinate;
 	}
 }

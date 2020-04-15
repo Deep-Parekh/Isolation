@@ -16,10 +16,19 @@ public class Isolation {
 		System.out.println("Who goes first (C for computer, O for opponent)?: ");
 		String input = kb.nextLine().toUpperCase();
 		Player first = null;
-		if(input.charAt(0) == 'C')
+		Player second = null;
+		if(input.charAt(0) == 'C') {
 			first = Player.Computer;
-		else if (input.charAt(0) == 'O')
+			second = Player.Opponent;
+		}
+		else if (input.charAt(0) == 'O') {
 			first = Player.Opponent;
-		IsolationGame game = new IsolationGame(first);
+			second = Player.Computer;
+		}
+		IsolationGame game = new IsolationGame(first, second, 20);
+		while(!game.isOver()) {
+			System.out.println(game);
+			game.play();
+		}
 	}
 }
