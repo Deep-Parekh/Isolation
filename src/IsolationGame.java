@@ -57,8 +57,18 @@ public class IsolationGame {
 	 * MiniMax with AlphaBeta pruning and Iterative Deepening
 	 */
 	private Coordinate maxMove(){
-		// TODO Auto-generated method stub
-		return null;
+		/*
+		 * Alpha-Beta Search methods should most likely be implemented in separate 
+		 * thread to return within a specific time limit
+		 */
+		AlphaBetaSearch search = new AlphaBetaSearch(this.state);
+		search.start();
+		try {
+			search.join(timeLimit*1000);
+		} catch (InterruptedException interrupted) {
+			interrupted.printStackTrace();
+		}
+		return search.getBestMove();
 	}
 
 	public Coordinate getOpponentMove() throws InvalidMoveException {
