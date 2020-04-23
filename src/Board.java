@@ -41,9 +41,10 @@ public class Board {
 			this.opponent = new Coordinate((byte)7, (byte)7);
 			this.state[7][7] = Board.O;
 		}
-		this.opponentSuccessors = this.getSuccessors(Player.Opponent);
-		this.computerSuccessors = this.getSuccessors(Player.Computer);
-		this.generateScore();
+		this.heuristic = new Offensive();
+		//this.opponentSuccessors = this.getSuccessors(Player.Opponent);
+		//this.computerSuccessors = this.getSuccessors(Player.Computer);
+		//this.generateScore();
 	}
 	
 	public Board(Board board, Coordinate computer) {
@@ -52,7 +53,7 @@ public class Board {
 		this.opponent = board.opponent;
 		this.heuristic = board.heuristic;
 		this.move(Player.Computer, computer);
-		this.generateScore();
+		//this.generateScore();
 	}
 	
 	public char[][] getState(){
@@ -60,14 +61,23 @@ public class Board {
 	}
 	
 	public int getScore() {
+		if(this.opponentSuccessors == null)
+			this.opponentSuccessors = this.getSuccessors(Player.Opponent);
+		if(this.computerSuccessors == null)
+			this.computerSuccessors = this.getSuccessors(Player.Computer);
+		this.generateScore();
 		return this.score;
+	}
+	
+	public void setScore(int score) {
+		this.score = score;
 	}
 	
 	/*
 	 * Utility function that generates the score (value) of the current board
 	 */
 	private void generateScore() {
-		this.score = this.heuristic.getScore(state);
+		this.setScore(heuristic.getScore(this));
 	}
 	
 	private void initializeBoard() {
@@ -95,9 +105,9 @@ public class Board {
 			this.opponent = move;
 			this.state[this.opponent.x][this.opponent.y] = O;
 		}
-		this.opponentSuccessors = this.getSuccessors(Player.Opponent);
-		this.computerSuccessors = this.getSuccessors(Player.Computer);
-		generateScore();
+//		this.opponentSuccessors = this.getSuccessors(Player.Opponent);
+//		this.computerSuccessors = this.getSuccessors(Player.Computer);
+//		generateScore();
 	}
 	
 	public char getCoordinate(Coordinate coordinate) {
@@ -105,7 +115,7 @@ public class Board {
 	}
 	
 	public boolean isTerminal() {
-		if(this.computerSuccessors.size() == 0 || this.opponentSuccessors.size() == 0)
+		if(this.getScore() == 0)
 			return true;
 		return false;
 	}

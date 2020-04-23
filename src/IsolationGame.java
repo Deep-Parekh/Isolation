@@ -61,7 +61,7 @@ public class IsolationGame {
 		 * Alpha-Beta Search methods should most likely be implemented in separate 
 		 * thread to return within a specific time limit
 		 */
-		AlphaBetaSearch search = new AlphaBetaSearch(this.state);
+		AlphaBetaSearch search = new AlphaBetaSearch(this.state, Player.Computer);
 		search.start();
 		try {
 			search.join(timeLimit*1000);
@@ -88,6 +88,11 @@ public class IsolationGame {
 			System.out.println(e.getMessage());
 		}
 		return move;
+	}
+	
+	private boolean isInvalid(Coordinate move) {
+		// Check if the opponents move is a valid movement
+		return true;
 	}
 	
 	public Coordinate convertMove(String coordinate){
