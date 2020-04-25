@@ -19,19 +19,24 @@ public class IsolationGame {
 	private Player currentPlayer;
 	private Player nextPlayer;
 	private Board state;
-	private String status;
-	private HashMap<Player, Queue<Coordinate>> moveTable;
 	private int timeLimit;
 	private int totalMoves;
+	private String moveLogHeading;
+	private Coordinate[] firstPlayerMoves;
+	private Coordinate[] secondPlayerMoves;
 	
 	public IsolationGame(Player first, Player second, int timeLimit) {
 		this.currentPlayer = first;
 		this.nextPlayer = second;
 		this.state = new Board(first);
 		this.timeLimit = timeLimit;
-		this.moveTable = new HashMap<Player, Queue<Coordinate>>();
-		moveTable.put(Player.Computer, new LinkedList<Coordinate>());
-		moveTable.put(Player.Opponent, new LinkedList<Coordinate>());
+		firstPlayerMoves = new Coordinate[32];
+		secondPlayerMoves = new Coordinate[32];
+		if(this.currentPlayer == Player.Opponent)
+			moveLogHeading = "Opponent vs. Computer";
+		else
+			moveLogHeading = "Computer vs. Opponent";
+		this.totalMoves = 0;
 	}
 	
 	public void play() {
@@ -41,8 +46,12 @@ public class IsolationGame {
 				move = getOpponentMove();
 			else 
 				move = getOpponentMove(); //maxMove();
-			moveTable.get(this.currentPlayer).add(move);
 			state.move(this.currentPlayer, move);
+			if(this.totalMoves % 2 == 0)
+				firstPlayerMoves[this.totalMoves/2] = move;
+			else
+				secondPlayerMoves[this.totalMoves/2] = move;
+			state.generateScore();
 			Player temp = this.currentPlayer;
 			this.currentPlayer = this.nextPlayer;
 			this.nextPlayer = temp;
@@ -80,6 +89,8 @@ public class IsolationGame {
 				String input = kb.readLine();
 				input = input.trim().toUpperCase();
 				move = convertMove(input);
+				if(state.isInvalidMove(move))
+					move = null;
 				if(move == null) {
 					System.out.println("Invalid move! Try again");
 				}
@@ -88,11 +99,6 @@ public class IsolationGame {
 			System.out.println(e.getMessage());
 		}
 		return move;
-	}
-	
-	private boolean isInvalid(Coordinate move) {
-		// Check if the opponents move is a valid movement
-		return true;
 	}
 	
 	public Coordinate convertMove(String coordinate){
@@ -114,13 +120,28 @@ public class IsolationGame {
 	public String toString() {
 		String rtn = new String();
 		char[][] board = this.state.getState();
-		rtn += "\t\t1\t2\t3\t4\t5\t6\t7\t8\t\n";
+		Queue<Coordinate> first = null;
+		Queue<Coordinate> second = null;
+		rtn += "     1  2  3  4  5  6  7  8  \t" + moveLogHeading + "\n";
 		for(int i = 0; i < Board.SIZE; ++i){
-			rtn += ("\t" + (char)('A' + i) + "\t");
+			rtn += ("  " + (char)('A' + i) + "  ");
 			for(int j = 0; j < Board.SIZE; ++j){
-				rtn += board[i][j] + "\t";
+				rtn += board[i][j] + "  ";
 			}
-			rtn = rtn + "\n";
+			String firstMove = firstPlayerMoves[i] == null ? "" : firstPlayerMoves[i].toString();
+			String secondMove = secondPlayerMoves[i] == null ? "" : secondPlayerMoves[i].toString();
+			if(firstMove == "" && secondMove == "")
+				rtn = rtn + "\n";
+			else
+				rtn = rtn + "\t" + (i+1) + ". " + firstMove + "\t\t" + secondMove + "\n";
+		}
+		// Add logic for when there are more moves than 16 (8*2)
+		int i = 8;
+		while(firstPlayerMoves[i] != null) {
+			String firstMove = firstPlayerMoves[i] == null ? "" : firstPlayerMoves[i].toString();
+			String secondMove = secondPlayerMoves[i] == null ? "" : secondPlayerMoves[i].toString();
+			rtn = rtn + "                             \t" + (i+1) + ". " + firstMove + "\t\t" + secondMove + "\n";
+			++i;
 		}
 		return rtn;
 	}
