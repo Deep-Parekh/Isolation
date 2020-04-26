@@ -17,6 +17,7 @@ public class HeuristicManager {
 	
 	public HeuristicManager(String strategy) {
 		this.strategy = strategy.trim();
+		this.heuristics = new HashMap<String,Heuristic>(2,1);
 		this.heuristics.put("Offensive", new Offensive());
 		this.heuristics.put("Defensive", new Defensive());
 	}

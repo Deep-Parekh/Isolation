@@ -24,6 +24,7 @@ public class IsolationGame {
 	private String moveLogHeading;
 	private Coordinate[] firstPlayerMoves;
 	private Coordinate[] secondPlayerMoves;
+	private HeuristicManager heuristicManager;
 	
 	public IsolationGame(Player first, Player second, int timeLimit) {
 		this.currentPlayer = first;
@@ -51,7 +52,6 @@ public class IsolationGame {
 				firstPlayerMoves[this.totalMoves/2] = move;
 			else
 				secondPlayerMoves[this.totalMoves/2] = move;
-			state.generateScore();
 			Player temp = this.currentPlayer;
 			this.currentPlayer = this.nextPlayer;
 			this.nextPlayer = temp;
@@ -135,13 +135,22 @@ public class IsolationGame {
 			else
 				rtn = rtn + "\t" + (i+1) + ". " + firstMove + "\t\t" + secondMove + "\n";
 		}
-		// Add logic for when there are more moves than 16 (8*2)
+		// When there are more than 8 moves played by either player 
 		int i = 8;
 		while(firstPlayerMoves[i] != null) {
 			String firstMove = firstPlayerMoves[i] == null ? "" : firstPlayerMoves[i].toString();
 			String secondMove = secondPlayerMoves[i] == null ? "" : secondPlayerMoves[i].toString();
 			rtn = rtn + "                             \t" + (i+1) + ". " + firstMove + "\t\t" + secondMove + "\n";
 			++i;
+		}
+		// If the game is over
+		if(this.isOver()) {
+			String winner = null;
+			if(this.nextPlayer == Player.Opponent)
+				winner = "Congratulations! You won, the Computer lost\n";
+			else 
+				winner = "You lost, the Computer won\n";
+			rtn += winner;
 		}
 		return rtn;
 	}

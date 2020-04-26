@@ -21,10 +21,11 @@ public class Board {
 	private char[][] state;
 	private Coordinate computer;
 	private Coordinate opponent;
-	private int score;	
-	private Heuristic heuristic;
-	public HashSet<Board> opponentSuccessors;
-	public HashSet<Board> computerSuccessors;
+	private int score;
+	private HeuristicManager heuristicManager;
+	private HashSet<Board> opponentSuccessors;
+	private HashSet<Board> computerSuccessors;
+	private boolean hasChanged;
 	
 	public Board(Player first) {
 		state = new char[SIZE][SIZE];
@@ -41,31 +42,42 @@ public class Board {
 			this.opponent = new Coordinate((byte)7, (byte)7);
 			this.state[7][7] = Board.O;
 		}
-		this.heuristic = new Offensive();
-		//this.opponentSuccessors = this.getSuccessors(Player.Opponent);
-		//this.computerSuccessors = this.getSuccessors(Player.Computer);
-		//this.generateScore();
+		this.heuristicManager = new HeuristicManager("OffensiveToDefensive");
+		this.hasChanged = true;
 	}
 	
 	public Board(Board board, Coordinate computer) {
 		this.state = copyState(board.state);
 		this.computer = computer;
 		this.opponent = board.opponent;
-		this.heuristic = board.heuristic;
+		this.heuristicManager = board.heuristicManager;
 		this.move(Player.Computer, computer);
-		//this.generateScore();
+		this.hasChanged = true;
 	}
 	
 	public char[][] getState(){
 		return this.state;
 	}
 	
-	public int getScore() {
-		if(this.opponentSuccessors == null)
+	public HashSet<Board> getOpponentSuccessors(){
+		if(this.hasChanged)
 			this.opponentSuccessors = this.getSuccessors(Player.Opponent);
-		if(this.computerSuccessors == null)
+		return this.opponentSuccessors;
+	}
+	
+	public HashSet<Board> getComputerSuccessors(){
+		if(this.hasChanged)
 			this.computerSuccessors = this.getSuccessors(Player.Computer);
-		this.generateScore();
+		return this.computerSuccessors;
+	}
+	
+	public int getScore() {
+		if(this.hasChanged) {
+			this.getOpponentSuccessors();
+			this.getComputerSuccessors();
+			this.hasChanged = false;
+			generateScore();
+		}
 		return this.score;
 	}
 	
@@ -77,6 +89,7 @@ public class Board {
 	 * Utility function that generates the score (value) of the current board
 	 */
 	private void generateScore() {
+		Heuristic heuristic = heuristicManager.getHeuristic();
 		this.setScore(heuristic.getScore(this));
 	}
 	
@@ -93,31 +106,88 @@ public class Board {
 	}
 
 	public void move(Player player, Coordinate move){
-//		if(move.isInvalid() || getCoordinate(move) != EMPTY || !validMovement(move, player))
-//			throw new InvalidMoveException("Your move is Invalid");
 		if (player==Player.Computer) {
 			this.state[this.computer.x][this.computer.y] = USED;
 			this.computer = move;
 			this.state[this.computer.x][this.computer.y] = X;
-		}
-		if (player==Player.Opponent) {
+		}else{
 			this.state[this.opponent.x][this.opponent.y] = USED;
 			this.opponent = move;
 			this.state[this.opponent.x][this.opponent.y] = O;
 		}
-//		this.opponentSuccessors = this.getSuccessors(Player.Opponent);
-//		this.computerSuccessors = this.getSuccessors(Player.Computer);
-//		generateScore();
 	}
 	
 	public char getCoordinate(Coordinate coordinate) {
 		return this.state[coordinate.x][coordinate.y];
 	}
 	
-	public boolean isTerminal() {
-		if(this.getScore() == 0)
+
+	public boolean isInvalidMove(Coordinate move) {
+		if(move.equals(this.opponent) || this.getCoordinate(move) != EMPTY) {
+			move = null;
 			return true;
-		return false;
+		}
+		
+		// Horizontal
+		if (move.x == this.opponent.x) {
+			if(move.y > this.opponent.y) {
+				for(int i = 1; i <= move.y -  this.opponent.y; ++i) {
+					if(this.state[this.opponent.x][this.opponent.y+i] != EMPTY) {
+						move = null;
+						return true;
+					}
+				}
+				return false;
+			}else {
+				for(int i = 1; i <= this.opponent.y - move.y; ++i) {
+					if(this.state[this.opponent.x][this.opponent.y-i] != EMPTY) {
+						move = null;
+						return true;
+					}
+				}
+				return false;
+			}
+		}
+		
+		// Vertical
+		if (move.y == this.opponent.y) {
+			if(move.x > this.opponent.x) {
+				for(int i = 1; i <= move.x - this.opponent.x; ++i) {
+					if(this.state[this.opponent.x+i][this.opponent.y] != EMPTY) {
+						move = null;
+						return true;
+					}
+				}
+				return false;
+			}else {
+				for(int i = 1; i <= this.opponent.x - move.x; ++i) {
+					if(this.state[this.opponent.x-i][this.opponent.y] != EMPTY) {
+						move = null;
+						return true;
+					}
+				}
+				return false;
+			}
+		}
+		
+		// Positive slope
+		if (Math.abs(move.x + move.y) == Math.abs(this.opponent.x + this.opponent.y)) {
+			move = null;
+			return false;
+		}
+		
+		// Negative slope
+		if (Math.abs(move.x - move.y) == Math.abs(this.opponent.x-this.opponent.y)) {
+			move = null;
+			return false;
+		}
+		return true;
+	}
+	
+	public boolean isTerminal() {
+		if(this.getComputerSuccessors().size() > 0 || this.getOpponentSuccessors().size() > 0)
+			return false;
+		return true;
 	}
 	
 	/*
