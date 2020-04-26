@@ -25,7 +25,42 @@ public class AlphaBetaSearch extends Thread {
 	public void run() {
 		/*
 		 * Logic for finding the best move, update bestMove variable every time a 
-		 * better move is found using Alpha-Beta Search
+		 * better move is foundAlpha-Beta Search
 		 */
+		MaxValue(this.gameBoard, Integer.MIN_VALUE, Integer.MAX_VALUE);
+	}
+	
+	private int MaxValue(Board board, int alpha, int beta)
+	{
+		int value = Integer.MIN_VALUE;
+		
+		if (board.isTerminal())
+			return board.getScore();
+		
+		for (Board successor : board.computerSuccessors) 
+		{
+			value = Math.max(value, MinValue(successor, alpha, beta));
+			if (value >= beta)
+				return value;
+			alpha = Math.max(alpha, value);
+		}
+		return value;
+	}
+	
+	private int MinValue(Board board, int alpha, int beta)
+	{
+		int value = Integer.MAX_VALUE;
+		
+		if (board.isTerminal())
+			return board.getScore();
+		
+		for (Board successor : board.opponentSuccessors)
+		{
+			value = Math.min(value, MaxValue(successor, alpha, beta));
+			if (value <= alpha)
+				return value;
+			beta = Math.min(beta, value);
+		}
+		return value;
 	}
 }
