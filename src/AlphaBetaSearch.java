@@ -11,7 +11,6 @@ public class AlphaBetaSearch extends Thread {
 	private Coordinate bestMove;
 	private Board gameBoard;
 	private Player maxPlayer;
-	//private HeuristicManager heuristicManager; 	//We might need to put HeuristicManager here so that it can access totalMoves
 	
 	public AlphaBetaSearch(Board gameBoard, Player maxPlayer) {
 		this.gameBoard = gameBoard;
@@ -42,7 +41,7 @@ public class AlphaBetaSearch extends Thread {
 		 */
 		int value = Integer.MIN_VALUE;
 		
-		for (Board successor : board.computerSuccessors) 
+		for (Board successor : board.getComputerSuccessors()) 
 		{
 			value = Math.max(value, MinValue(successor, alpha, beta, heuristic));
 			if (value > alpha)

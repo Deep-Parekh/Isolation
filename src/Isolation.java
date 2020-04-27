@@ -10,16 +10,13 @@ import java.util.Scanner;
  *
  */
 public class Isolation {
-	
-	static String input = null;
-	static int timeLimit = 0;
-
-	static Player first = null;
-	static Player second = null;
 
 	public static void main(String[] args) {
-		// TODO
 		Scanner keyboard = new Scanner(System.in);
+		String input = null;
+		int timeLimit = 0;
+		Player first = null;
+		Player second = null;
 		while(true) {
 			try {
 				System.out.print("Time limit for computer (in seconds)?: ");

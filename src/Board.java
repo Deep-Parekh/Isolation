@@ -26,6 +26,7 @@ public class Board {
 	private HashSet<Board> opponentSuccessors;
 	private HashSet<Board> computerSuccessors;
 	private boolean hasChanged;
+	private int usedCoordinates;
 	
 	public Board(Player first) {
 		state = new char[SIZE][SIZE];
@@ -44,6 +45,7 @@ public class Board {
 		}
 		this.heuristicManager = new HeuristicManager("OffensiveToDefensive");
 		this.hasChanged = true;
+		this.usedCoordinates = 2;
 	}
 	
 	public Board(Board board, Coordinate computer) {
@@ -51,6 +53,7 @@ public class Board {
 		this.computer = computer;
 		this.opponent = board.opponent;
 		this.heuristicManager = board.heuristicManager;
+		this.usedCoordinates = board.usedCoordinates;
 		this.move(Player.Computer, computer);
 		this.hasChanged = true;
 	}
@@ -78,6 +81,10 @@ public class Board {
 			this.computerSuccessors = this.getSuccessors(Player.Computer);
 		return this.computerSuccessors;
 	}
+
+	public int getUsedCoordinates() {
+		return this.usedCoordinates;
+	}
 	
 	public int getScore() {
 		if(this.hasChanged) {
@@ -97,7 +104,7 @@ public class Board {
 	 * Utility function that generates the score (value) of the current board
 	 */
 	private void generateScore() {
-		Heuristic heuristic = heuristicManager.getHeuristic();
+		Heuristic heuristic = heuristicManager.getHeuristic(this.usedCoordinates);
 		this.setScore(heuristic.getScore(this));
 	}
 	
@@ -123,6 +130,7 @@ public class Board {
 			this.opponent = move;
 			this.state[this.opponent.x][this.opponent.y] = O;
 		}
+		++this.usedCoordinates;
 	}
 	
 	public char getCoordinate(Coordinate coordinate) {

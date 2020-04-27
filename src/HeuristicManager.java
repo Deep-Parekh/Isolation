@@ -12,14 +12,17 @@ import java.util.HashMap;
  */
 public class HeuristicManager {
 	
+	private static String OFFENSIVE = "Offensive";
+	private static String DEFENSIVE = "Defensive";
+	
 	private String strategy;
 	private HashMap<String, Heuristic> heuristics;
 	
 	public HeuristicManager(String strategy) {
 		this.strategy = strategy.trim();
 		this.heuristics = new HashMap<String,Heuristic>(2,1);
-		this.heuristics.put("Offensive", new Offensive());
-		this.heuristics.put("Defensive", new Defensive());
+		this.heuristics.put(OFFENSIVE, new Offensive());
+		this.heuristics.put(DEFENSIVE, new Defensive());
 	}
 	
 	public Heuristic getHeuristic() {
@@ -27,16 +30,18 @@ public class HeuristicManager {
 	}
 	
 	public Heuristic getHeuristic(int totalMoves) {
+		if(strategy.equals(OFFENSIVE) || strategy.equals(DEFENSIVE))
+			return this.heuristics.get(strategy);
 		if(totalMoves > 32) {
-			if(this.strategy.startsWith("Offensive")) 
-				return this.heuristics.get("Defensive");
+			if(this.strategy.startsWith(OFFENSIVE)) 
+				return this.heuristics.get(DEFENSIVE);
 			else
-				return this.heuristics.get("Offensive");
+				return this.heuristics.get(OFFENSIVE);
 		}else {
-			if(this.strategy.startsWith("Offensive")) 
-				return this.heuristics.get("Offensive");
+			if(this.strategy.startsWith(OFFENSIVE)) 
+				return this.heuristics.get(OFFENSIVE);
 			else
-				return this.heuristics.get("Defensive");	
+				return this.heuristics.get(DEFENSIVE);	
 		}
 	}
 }

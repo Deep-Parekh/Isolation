@@ -20,11 +20,9 @@ public class IsolationGame {
 	private Player nextPlayer;
 	private Board state;
 	private int timeLimit;
-	private int totalMoves;
 	private String moveLogHeading;
 	private Coordinate[] firstPlayerMoves;
 	private Coordinate[] secondPlayerMoves;
-	private HeuristicManager heuristicManager;
 	
 	public IsolationGame(Player first, Player second, int timeLimit) {
 		this.currentPlayer = first;
@@ -37,25 +35,24 @@ public class IsolationGame {
 			moveLogHeading = "Opponent vs. Computer";
 		else
 			moveLogHeading = "Computer vs. Opponent";
-		this.totalMoves = 0;
 	}
 	
 	public void play() {
 		Coordinate move = null;
+		int totalMoves = this.state.getUsedCoordinates();
 		try {
 			if(this.currentPlayer == Player.Opponent)
 				move = getOpponentMove();
 			else 
 				move = getOpponentMove(); //maxMove();
 			state.move(this.currentPlayer, move);
-			if(this.totalMoves % 2 == 0)
-				firstPlayerMoves[this.totalMoves/2] = move;
+			if(totalMoves % 2 == 0)
+				firstPlayerMoves[(totalMoves/2) - 1] = move;
 			else
-				secondPlayerMoves[this.totalMoves/2] = move;
+				secondPlayerMoves[(totalMoves/2) - 1] = move;
 			Player temp = this.currentPlayer;
 			this.currentPlayer = this.nextPlayer;
 			this.nextPlayer = temp;
-			++totalMoves;
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 		}
@@ -75,7 +72,7 @@ public class IsolationGame {
 		try {
 			search.join(timeLimit*1000);
 		} catch (InterruptedException interrupted) {
-			interrupted.printStackTrace();
+			System.out.println(interrupted.getMessage());
 		}
 		return search.getBestMove();
 	}
