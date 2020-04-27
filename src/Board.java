@@ -55,6 +55,14 @@ public class Board {
 		this.hasChanged = true;
 	}
 	
+	public Coordinate getComputerCoordinate() {
+		return computer;
+	}
+	
+	public Coordinate getOpponentCoordinate() {
+		return opponent;
+	}
+	
 	public char[][] getState(){
 		return this.state;
 	}

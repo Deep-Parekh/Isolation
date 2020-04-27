@@ -28,10 +28,33 @@ public class AlphaBetaSearch extends Thread {
 		 * Logic for finding the best move, update bestMove variable every time a 
 		 * better move is foundAlpha-Beta Search
 		 */
-		MaxValue(this.gameBoard, Integer.MIN_VALUE, Integer.MAX_VALUE);
+		Offensive heuristic = new Offensive();
+		//Defensive heuristic = new Defensive();
+		
+		InitialMaxValue(this.gameBoard, Integer.MIN_VALUE, Integer.MAX_VALUE, heuristic);
 	}
 	
-	private int MaxValue(Board board, int alpha, int beta)
+	private void InitialMaxValue(Board board, int alpha, int beta, Heuristic heuristic)
+	{
+		/*
+		 * Similar to MaxValue except it is unique, used as the start of the search
+		 * it is meant to update bestMove when a better move is found
+		 */
+		int value = Integer.MIN_VALUE;
+		
+		for (Board successor : board.computerSuccessors) 
+		{
+			value = Math.max(value, MinValue(successor, alpha, beta, heuristic));
+			if (value > alpha)
+			{
+				alpha = value;
+				bestMove = successor.getComputerCoordinate();
+			}
+			
+		}
+	}
+	
+	private int MaxValue(Board board, int alpha, int beta, Heuristic heuristic)
 	{
 		int value = Integer.MIN_VALUE;
 		
@@ -40,7 +63,7 @@ public class AlphaBetaSearch extends Thread {
 		
 		for (Board successor : board.getComputerSuccessors()) 
 		{
-			value = Math.max(value, MinValue(successor, alpha, beta));
+			value = Math.max(value, MinValue(successor, alpha, beta, heuristic));
 			if (value >= beta)
 				return value;
 			alpha = Math.max(alpha, value);
@@ -48,7 +71,7 @@ public class AlphaBetaSearch extends Thread {
 		return value;
 	}
 	
-	private int MinValue(Board board, int alpha, int beta)
+	private int MinValue(Board board, int alpha, int beta, Heuristic heuristic)
 	{
 		int value = Integer.MAX_VALUE;
 		
@@ -57,7 +80,7 @@ public class AlphaBetaSearch extends Thread {
 		
 		for (Board successor : board.getOpponentSuccessors())
 		{
-			value = Math.min(value, MaxValue(successor, alpha, beta));
+			value = Math.min(value, MaxValue(successor, alpha, beta, heuristic));
 			if (value <= alpha)
 				return value;
 			beta = Math.min(beta, value);
