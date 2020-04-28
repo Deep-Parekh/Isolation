@@ -8,7 +8,7 @@
  */
 public class Coordinate{
 	
-	final byte SIZE = 8; 
+	static final byte SIZE = 8; 
 	byte x;
 	byte y;
 	
@@ -37,5 +37,10 @@ public class Coordinate{
 			return false;
 		Coordinate other = (Coordinate) obj;
 		return (other.x == this.x) && (other.y == this.y);
+	}
+	
+	@Override 
+	public int hashCode() {
+		return toString().hashCode();
 	}
 }

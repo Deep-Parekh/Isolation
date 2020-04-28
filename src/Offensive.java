@@ -13,7 +13,7 @@ public class Offensive implements Heuristic {
 	 */
 	@Override
 	public int getScore(Board board) {
-		return board.computerSuccessors.size() - (2 * board.opponentSuccessors.size());
+		return board.getComputerSuccessors().size() - (2 * board.getOpponentSuccessors().size());
 	}
 
 }

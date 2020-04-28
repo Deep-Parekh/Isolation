@@ -1,5 +1,7 @@
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Stack;
 
 /**
  * 
@@ -17,30 +19,31 @@ public class Board {
 	public static final char X = 'X';
 	public static final char O = 'O';
 	
-	
 	private char[][] state;
-	private Coordinate computer;
-	private Coordinate opponent;
+	private Stack<Coordinate> computer;
+	private Stack<Coordinate> opponent;
 	private int score;
 	private HeuristicManager heuristicManager;
-	private HashSet<Board> opponentSuccessors;
-	private HashSet<Board> computerSuccessors;
+	private HashSet<Coordinate> opponentSuccessors;
+	private HashSet<Coordinate> computerSuccessors;
 	private boolean hasChanged;
 	private int usedCoordinates;
 	
 	public Board(Player first) {
 		state = new char[SIZE][SIZE];
 		this.initializeBoard();
+		this.computer = new Stack<Coordinate>();
+		this.opponent = new Stack<Coordinate>();
 		if(first == Player.Opponent) {
-			this.opponent = new Coordinate((byte)0, (byte)0);
+			this.opponent.push(new Coordinate((byte)0, (byte)0));
 			this.state[0][0] = Board.O;
-			this.computer = new Coordinate((byte)7, (byte)7);
+			this.computer.push(new Coordinate((byte)7, (byte)7));
 			this.state[7][7] = Board.X;
 		}
 		else {
-			this.computer = new Coordinate((byte)0, (byte)0);
+			this.computer.push(new Coordinate((byte)0, (byte)0));
 			this.state[0][0] = Board.X;
-			this.opponent = new Coordinate((byte)7, (byte)7);
+			this.opponent.push(new Coordinate((byte)7, (byte)7));
 			this.state[7][7] = Board.O;
 		}
 		this.heuristicManager = new HeuristicManager("OffensiveToDefensive");
@@ -48,37 +51,27 @@ public class Board {
 		this.usedCoordinates = 2;
 	}
 	
-	public Board(Board board, Coordinate computer) {
-		this.state = copyState(board.state);
-		this.computer = computer;
-		this.opponent = board.opponent;
-		this.heuristicManager = board.heuristicManager;
-		this.usedCoordinates = board.usedCoordinates;
-		this.move(Player.Computer, computer);
-		this.hasChanged = true;
-	}
-	
 	public Coordinate getComputerCoordinate() {
-		return computer;
+		return computer.peek();
 	}
 	
 	public Coordinate getOpponentCoordinate() {
-		return opponent;
+		return opponent.peek();
 	}
 	
 	public char[][] getState(){
 		return this.state;
 	}
 	
-	public HashSet<Board> getOpponentSuccessors(){
-		if(this.hasChanged)
-			this.opponentSuccessors = this.getSuccessors(Player.Opponent);
+	public HashSet<Coordinate> getOpponentSuccessors(){
+		if(this.hasChanged) 
+			this.opponentSuccessors = this.getNextMove(Player.Opponent);
 		return this.opponentSuccessors;
 	}
 	
-	public HashSet<Board> getComputerSuccessors(){
+	public HashSet<Coordinate> getComputerSuccessors(){
 		if(this.hasChanged)
-			this.computerSuccessors = this.getSuccessors(Player.Computer);
+			this.computerSuccessors = this.getNextMove(Player.Computer);
 		return this.computerSuccessors;
 	}
 
@@ -112,25 +105,38 @@ public class Board {
 		for(char[] c: this.state)
 			Arrays.fill(c, EMPTY);
 	}
-	
-	private char[][] copyState(char[][] state) {
-		char[][] newState = new char[SIZE][SIZE];
-		for(int i = 0; i < SIZE; ++i)
-			newState[i] = Arrays.copyOf(state[i], SIZE);
-		return newState;
-	}
 
 	public void move(Player player, Coordinate move){
+		Coordinate currentPlayer = null;
 		if (player==Player.Computer) {
-			this.state[this.computer.x][this.computer.y] = USED;
-			this.computer = move;
-			this.state[this.computer.x][this.computer.y] = X;
+			currentPlayer = this.computer.peek();
+			this.state[currentPlayer.x][currentPlayer.y] = USED;
+			this.computer.push(move);
+			this.state[move.x][move.y] = X;
 		}else{
-			this.state[this.opponent.x][this.opponent.y] = USED;
-			this.opponent = move;
-			this.state[this.opponent.x][this.opponent.y] = O;
+			currentPlayer = this.opponent.peek();
+			this.state[currentPlayer.x][currentPlayer.y] = USED;
+			this.opponent.push(move);
+			this.state[move.x][move.y] = O;
 		}
 		++this.usedCoordinates;
+	}
+	
+	public void undoMove(Player player) {
+		Coordinate currentPlayer = null;
+		if (player==Player.Computer) {
+			currentPlayer = this.computer.peek();
+			this.state[currentPlayer.x][currentPlayer.y] = EMPTY;
+			this.computer.pop();
+			currentPlayer = this.computer.peek();
+			this.state[currentPlayer.x][currentPlayer.y] = X;
+		}else{
+			currentPlayer = this.opponent.peek();
+			this.state[currentPlayer.x][currentPlayer.y] = EMPTY;
+			this.opponent.pop();
+			this.state[currentPlayer.x][currentPlayer.y] = O;
+		}
+		--this.usedCoordinates;
 	}
 	
 	public char getCoordinate(Coordinate coordinate) {
@@ -139,167 +145,84 @@ public class Board {
 	
 
 	public boolean isInvalidMove(Coordinate move) {
-		if(move.equals(this.opponent) || this.getCoordinate(move) != EMPTY) {
-			move = null;
+		if(move.equals(this.opponent.peek()) || this.getCoordinate(move) != EMPTY || !this.opponentSuccessors.contains(move)) 
 			return true;
-		}
-		
-		// Horizontal
-		if (move.x == this.opponent.x) {
-			if(move.y > this.opponent.y) {
-				for(int i = 1; i <= move.y -  this.opponent.y; ++i) {
-					if(this.state[this.opponent.x][this.opponent.y+i] != EMPTY) {
-						move = null;
-						return true;
-					}
-				}
-				return false;
-			}else {
-				for(int i = 1; i <= this.opponent.y - move.y; ++i) {
-					if(this.state[this.opponent.x][this.opponent.y-i] != EMPTY) {
-						move = null;
-						return true;
-					}
-				}
-				return false;
-			}
-		}
-		
-		// Vertical
-		if (move.y == this.opponent.y) {
-			if(move.x > this.opponent.x) {
-				for(int i = 1; i <= move.x - this.opponent.x; ++i) {
-					if(this.state[this.opponent.x+i][this.opponent.y] != EMPTY) {
-						move = null;
-						return true;
-					}
-				}
-				return false;
-			}else {
-				for(int i = 1; i <= this.opponent.x - move.x; ++i) {
-					if(this.state[this.opponent.x-i][this.opponent.y] != EMPTY) {
-						move = null;
-						return true;
-					}
-				}
-				return false;
-			}
-		}
-		
-		// Positive slope
-		if (Math.abs(move.x + move.y) == Math.abs(this.opponent.x + this.opponent.y)) {
-			move = null;
-			return false;
-		}
-		
-		// Negative slope
-		if (Math.abs(move.x - move.y) == Math.abs(this.opponent.x-this.opponent.y)) {
-			move = null;
-			return false;
-		}
-		return true;
+		return false;
 	}
 	
 	public boolean isTerminal() {
-		if(this.getComputerSuccessors().size() > 0 || this.getOpponentSuccessors().size() > 0)
-			return false;
-		return true;
+		if(this.getComputerSuccessors().size() == 0 || this.getOpponentSuccessors().size() == 0)
+			return true;
+		return false;
 	}
 	
-	/*
-	 * Gets the immediate neighbors of the specified player, used to check if a state is a terminal state
-	 */
-	public HashSet<Board> getSuccessors(Player player){
-		HashSet<Board> neighbors = new HashSet<Board>();
+	public HashSet<Coordinate> getNextMove(Player player){
+		HashSet<Coordinate> neighbors = new HashSet<Coordinate>();
 		byte x, y = 0;
 		if(player.equals(Player.Computer)) {
-			x = this.computer.x;
-			y = this.computer.y;
+			x = this.computer.peek().x;
+			y = this.computer.peek().y;
 		}
 		else {
-			x = this.opponent.x;
-			y = this.opponent.y;
+			x = this.opponent.peek().x;
+			y = this.opponent.peek().y;
 		}
 		
-		// Up
-		for(int i  = 1; x + i < SIZE; ++i) {
-			if(this.state[x+i][y] != USED) {	
-				Board neighbor = new Board(this, new Coordinate((byte)(x + i), y));
-				neighbors.add(neighbor);
-			}
+		// Down
+		for(int i  = 1; x + i < SIZE; ++i) 
+			if(this.state[x+i][y] == EMPTY) 
+				neighbors.add(new Coordinate((byte)(x + i), y));
 			else 
 				break;
-		}
 
-		// Down
-		for(int i = 1; x - i >= 0; ++i) {
-			if(this.state[x-i][y] != USED) {		
-				Board neighbor = new Board(this, new Coordinate((byte)(x - i), y));
-				neighbors.add(neighbor);
-			}
+		// Up
+		for(int i = 1; x - i >= 0; ++i) 
+			if(this.state[x-i][y] == EMPTY)
+				neighbors.add(new Coordinate((byte)(x - i), y));
 			else
 				break;
-		}
 		
 		// Right
-		for(int i = 1; y + i < SIZE; ++i) {
-			if(this.state[x][y+i] != USED) {	
-				Board neighbor = new Board(this, new Coordinate(x, (byte)(y + i)));
-				neighbors.add(neighbor);
-			}
+		for(int i = 1; y + i < SIZE; ++i) 
+			if(this.state[x][y+i] == EMPTY) 
+				neighbors.add(new Coordinate(x, (byte)(y + i)));
 			else 
 				break;
-		}
 		
 		// Left
-		for(int i = 1; y - i >= 0; ++i) {
-			if(this.state[x][y-i] != USED) {	
-				Board neighbor = new Board(this, new Coordinate(x, (byte)(y - i)));
-				neighbors.add(neighbor);
-			}
+		for(int i = 1; y - i >= 0; ++i) 
+			if(this.state[x][y-i] == EMPTY)
+				neighbors.add(new Coordinate(x, (byte)(y - i)));
 			else 
 				break;
-		}
-		
-		// RightUp
-		for(int i = 1; x + i < SIZE && y + i < SIZE;++i) {
-			if(this.state[x+i][y+i] != USED) {	
-				Board neighbor = new Board(this, new Coordinate((byte)(x + i), (byte)(y + i)));
-				neighbors.add(neighbor);
-			}
-			else
-				break;
-		}
 		
 		// RightDown
-		for(int i = 1; x - i >= 0 && y + i < SIZE; ++i) {
-			if(this.state[x-i][y+i] != USED) {		
-				Board neighbor = new Board(this, new Coordinate((byte)(x - i), (byte)(y + i)));
-				neighbors.add(neighbor);
-			}
+		for(int i = 1; x + i < SIZE && y + i < SIZE;++i) 
+			if(this.state[x+i][y+i] == EMPTY)
+				neighbors.add(new Coordinate((byte)(x + i), (byte)(y + i)));
+			else
+				break;
+		
+		// RightDown
+		for(int i = 1; x - i >= 0 && y + i < SIZE; ++i) 
+			if(this.state[x-i][y+i] == EMPTY) 
+				neighbors.add(new Coordinate((byte)(x - i), (byte)(y + i)));
 			else 
 				break;
-		}
 		
 		// LeftUp
-		for(int i = 1; x + i < SIZE && y - i >= 0; ++i) {
-			if(this.state[x+i][y-i] != USED) {	
-				Board neighbor = new Board(this, new Coordinate((byte)(x + i), (byte)(y - i)));
-				neighbors.add(neighbor);
-			}
+		for(int i = 1; x + i < SIZE && y - i >= 0; ++i) 
+			if(this.state[x+i][y-i] == EMPTY)
+				neighbors.add(new Coordinate((byte)(x + i), (byte)(y - i)));
 			else 
 				break;
-		}
 		
 		// LeftDown
-		for(int i = 1; x - i >= 0 && y - i >= 0; ++i) {
-			if(this.state[x-i][y-i] != USED) {		
-				Board neighbor = new Board(this, new Coordinate((byte)(x - i), (byte)(y - i)));
-				neighbors.add(neighbor);
-			}
+		for(int i = 1; x - i >= 0 && y - i >= 0; ++i) 
+			if(this.state[x-i][y-i] == EMPTY) 
+				neighbors.add(new Coordinate((byte)(x - i), (byte)(y - i)));
 			else 
 				break;
-		}
 		
 		return neighbors;
 	}

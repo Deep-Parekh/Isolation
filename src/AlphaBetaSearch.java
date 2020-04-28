@@ -6,84 +6,100 @@
  * @author dparekh
  *
  */
-public class AlphaBetaSearch extends Thread {
+public class AlphaBetaSearch {
 	
 	private Coordinate bestMove;
 	private Board gameBoard;
 	private Player maxPlayer;
+	private int timeLimit;
+	private long startTime;
 	
-	public AlphaBetaSearch(Board gameBoard, Player maxPlayer) {
+	public AlphaBetaSearch(Board gameBoard, Player maxPlayer, int timeLimit) {
 		this.gameBoard = gameBoard;
 		this.maxPlayer = maxPlayer;
+		this.timeLimit = timeLimit;
 	}
 	
 	public Coordinate getBestMove() {
 		return this.bestMove;
 	}
 	
-	@Override
-	public void run() {
-		/*
-		 * Logic for finding the best move, update bestMove variable every time a 
-		 * better move is foundAlpha-Beta Search
-		 */
-		Offensive heuristic = new Offensive();
-		//Defensive heuristic = new Defensive();
-		
-		InitialMaxValue(this.gameBoard, Integer.MIN_VALUE, Integer.MAX_VALUE, heuristic);
-	}
-	
-	private void InitialMaxValue(Board board, int alpha, int beta, Heuristic heuristic)
+	private void InitialMaxValue(Board board, int alpha, int beta, int depth)
 	{
 		/*
 		 * Similar to MaxValue except it is unique, used as the start of the search
 		 * it is meant to update bestMove when a better move is found
 		 */
+		startTime = System.currentTimeMillis();
 		int value = Integer.MIN_VALUE;
 		
-		for (Board successor : board.getComputerSuccessors()) 
+		for (Coordinate nextMove : board.getComputerSuccessors()) 
 		{
-			value = Math.max(value, MinValue(successor, alpha, beta, heuristic));
+			value = Math.max(value, MinValue(nextMove,Player.Opponent, alpha, beta, depth-1));
 			if (value > alpha)
 			{
 				alpha = value;
-				bestMove = successor.getComputerCoordinate();
+				//bestMove = successor.getComputerCoordinate();
 			}
 			
 		}
 	}
 	
-	private int MaxValue(Board board, int alpha, int beta, Heuristic heuristic)
+	private int MaxValue(Coordinate move, Player maxPlayer, int alpha, int beta, int depth)
 	{
+		if(System.currentTimeMillis() - startTime > (this.timeLimit * 1000)) {/* Placeholder */}
+			// return with the best move or throw exception
+		
 		int value = Integer.MIN_VALUE;
 		
-		if (board.isTerminal())
-			return board.getScore();
+		gameBoard.move(maxPlayer, move);
 		
-		for (Board successor : board.getComputerSuccessors()) 
+		if (gameBoard.isTerminal() || depth == 0)
+			return gameBoard.getScore();
+		
+		Player nextPlayer;
+		if(maxPlayer == Player.Opponent)
+			nextPlayer = Player.Computer;
+		else
+			nextPlayer = Player.Opponent;
+		
+		for (Coordinate nextMove : gameBoard.getComputerSuccessors()) 
 		{
-			value = Math.max(value, MinValue(successor, alpha, beta, heuristic));
+			value = Math.max(value, MinValue(nextMove, nextPlayer, alpha, beta, depth-1));
 			if (value >= beta)
-				return value;
+				break;
 			alpha = Math.max(alpha, value);
 		}
+		gameBoard.undoMove(maxPlayer);
 		return value;
 	}
 	
-	private int MinValue(Board board, int alpha, int beta, Heuristic heuristic)
+	private int MinValue(Coordinate move, Player minPlayer, int alpha, int beta, int depth)
 	{
+		if(System.currentTimeMillis() - startTime > (this.timeLimit * 1000)) {/* Placeholder */}
+		// return with the best move or throw exception
+		
 		int value = Integer.MAX_VALUE;
 		
-		if (board.isTerminal())
-			return board.getScore();
+		gameBoard.move(minPlayer, move);
 		
-		for (Board successor : board.getOpponentSuccessors())
+		if (gameBoard.isTerminal() || depth == 0)
+			return gameBoard.getScore();
+		
+		Player nextPlayer;
+		if(maxPlayer == Player.Opponent)
+			nextPlayer = Player.Computer;
+		else
+			nextPlayer = Player.Opponent;
+		
+		for (Coordinate nextMove : gameBoard.getOpponentSuccessors())
 		{
-			value = Math.min(value, MaxValue(successor, alpha, beta, heuristic));
-			if (value <= alpha)
-				return value;
+			value = Math.min(value, MaxValue(nextMove, nextPlayer, alpha, beta, depth-1));
+			if (value <= alpha) 
+				break;
 			beta = Math.min(beta, value);
 		}
+		gameBoard.undoMove(minPlayer);
 		return value;
 	}
 }
