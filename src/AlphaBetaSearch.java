@@ -24,24 +24,35 @@ public class AlphaBetaSearch {
 		return this.bestMove;
 	}
 	
-	private void InitialMaxValue(Board board, int alpha, int beta, int depth)
+	public void Search()
+	{
+		IterativeDeepening(gameBoard, Integer.MIN_VALUE, Integer.MAX_VALUE);
+	}
+	
+	private void IterativeDeepening(Board board, int alpha, int beta)
 	{
 		/*
 		 * Similar to MaxValue except it is unique, used as the start of the search
 		 * it is meant to update bestMove when a better move is found
+		 * it is the implementation of Iterative Deepening
 		 */
 		startTime = System.currentTimeMillis();
+		int depth = 1;
 		int value = Integer.MIN_VALUE;
 		
-		for (Coordinate nextMove : board.getComputerSuccessors()) 
+		
+		while (true)
 		{
-			value = Math.max(value, MinValue(nextMove,Player.Opponent, alpha, beta, depth-1));
-			if (value > alpha)
+			for (Coordinate nextMove : board.getComputerSuccessors()) 
 			{
-				alpha = value;
-				//bestMove = successor.getComputerCoordinate();
+				value = Math.max(value, MinValue(nextMove,Player.Opponent, alpha, beta, depth-1));
+				if (value > alpha)
+				{
+					alpha = value;
+					bestMove = nextMove;
+				}
 			}
-			
+			depth++;
 		}
 	}
 	
@@ -103,3 +114,4 @@ public class AlphaBetaSearch {
 		return value;
 	}
 }
+
