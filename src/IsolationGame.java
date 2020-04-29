@@ -23,6 +23,7 @@ public class IsolationGame {
 	private String moveLogHeading;
 	private Coordinate[] firstPlayerMoves;
 	private Coordinate[] secondPlayerMoves;
+	private AlphaBetaSearch searcher;
 	
 	public IsolationGame(Player first, Player second, int timeLimit) {
 		this.currentPlayer = first;
@@ -31,6 +32,7 @@ public class IsolationGame {
 		this.timeLimit = timeLimit;
 		firstPlayerMoves = new Coordinate[32];
 		secondPlayerMoves = new Coordinate[32];
+		this.searcher = new AlphaBetaSearch(timeLimit);
 		if(this.currentPlayer == Player.Opponent)
 			moveLogHeading = "Opponent vs. Computer";
 		else
@@ -44,7 +46,7 @@ public class IsolationGame {
 			if(this.currentPlayer == Player.Opponent)
 				move = getOpponentMove();
 			else 
-				move = getOpponentMove(); //maxMove();
+				move = maxMove();
 			state.move(this.currentPlayer, move);
 			if(totalMoves % 2 == 0)
 				firstPlayerMoves[(totalMoves/2) - 1] = move;
@@ -63,9 +65,8 @@ public class IsolationGame {
 	 * MiniMax with AlphaBeta pruning and Iterative Deepening
 	 */
 	private Coordinate maxMove(){
-		AlphaBetaSearch search = new AlphaBetaSearch(this.state, Player.Computer, this.timeLimit);
-		
-		return search.getBestMove();
+		searcher.Search(state);
+		return searcher.getBestMove();
 	}
 
 	public Coordinate getOpponentMove() {
