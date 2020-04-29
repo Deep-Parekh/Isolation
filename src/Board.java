@@ -65,13 +65,13 @@ public class Board {
 	
 	public HashSet<Coordinate> getOpponentSuccessors(){
 		if(this.hasChanged) 
-			this.opponentSuccessors = this.getNextMove(Player.Opponent);
+			this.opponentSuccessors = this.getNextMoves(Player.Opponent);
 		return this.opponentSuccessors;
 	}
 	
 	public HashSet<Coordinate> getComputerSuccessors(){
 		if(this.hasChanged)
-			this.computerSuccessors = this.getNextMove(Player.Computer);
+			this.computerSuccessors = this.getNextMoves(Player.Computer);
 		return this.computerSuccessors;
 	}
 
@@ -119,6 +119,7 @@ public class Board {
 			this.opponent.push(move);
 			this.state[move.x][move.y] = O;
 		}
+		this.hasChanged = true;
 		++this.usedCoordinates;
 	}
 	
@@ -136,6 +137,7 @@ public class Board {
 			this.opponent.pop();
 			this.state[currentPlayer.x][currentPlayer.y] = O;
 		}
+		this.hasChanged = true;
 		--this.usedCoordinates;
 	}
 	
@@ -156,7 +158,7 @@ public class Board {
 		return false;
 	}
 	
-	public HashSet<Coordinate> getNextMove(Player player){
+	public HashSet<Coordinate> getNextMoves(Player player){
 		HashSet<Coordinate> neighbors = new HashSet<Coordinate>();
 		byte x, y = 0;
 		if(player.equals(Player.Computer)) {
