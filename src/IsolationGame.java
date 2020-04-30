@@ -19,7 +19,6 @@ public class IsolationGame {
 	private Player currentPlayer;
 	private Player nextPlayer;
 	private Board state;
-	private int timeLimit;
 	private String moveLogHeading;
 	private Coordinate[] firstPlayerMoves;
 	private Coordinate[] secondPlayerMoves;
@@ -29,7 +28,6 @@ public class IsolationGame {
 		this.currentPlayer = first;
 		this.nextPlayer = second;
 		this.state = new Board(first);
-		this.timeLimit = timeLimit;
 		firstPlayerMoves = new Coordinate[32];
 		secondPlayerMoves = new Coordinate[32];
 		this.searcher = new AlphaBetaSearch(timeLimit);
@@ -44,9 +42,9 @@ public class IsolationGame {
 		int totalMoves = this.state.getUsedCoordinates();
 		try {
 			if(this.currentPlayer == Player.Opponent)
-				move = getOpponentMove();
+				move = getOpponentMove();		//maxMove(currentPlayer); // for AI vs AI(buggy)
 			else 
-				move = maxMove();
+				move = maxMove(currentPlayer);
 			state.move(this.currentPlayer, move);
 			if(totalMoves % 2 == 0)
 				firstPlayerMoves[(totalMoves/2) - 1] = move;
@@ -61,11 +59,11 @@ public class IsolationGame {
 			
 	}
 	
-	/*
+	/* 
 	 * MiniMax with AlphaBeta pruning and Iterative Deepening
 	 */
-	private Coordinate maxMove(){
-		searcher.Search(state);
+	private Coordinate maxMove(Player maxPlayer) {
+		searcher.Search(maxPlayer, this.state);
 		return searcher.getBestMove();
 	}
 
@@ -74,9 +72,11 @@ public class IsolationGame {
 		Coordinate move = null;
 		try {
 			while(move == null) {
-				System.out.print("Enter Opponent's move: ");
+				System.out.print("Enter Opponent's move ( Q to exit): ");
 				String input = kb.readLine();
 				input = input.trim().toUpperCase();
+				if(input.charAt(0) == 'Q')
+					System.exit(0);
 				move = convertMove(input);
 				if(state.isInvalidMove(move))
 					move = null;
@@ -135,7 +135,7 @@ public class IsolationGame {
 		// If the game is over
 		if(this.isOver()) {
 			String winner = null;
-			if(this.nextPlayer == Player.Opponent)
+			if(this.state.getComputerSuccessors().size() == 0)
 				winner = "Congratulations! You won, the Computer lost\n";
 			else 
 				winner = "You lost, the Computer won\n";

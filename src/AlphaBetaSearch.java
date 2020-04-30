@@ -1,3 +1,5 @@
+import java.util.HashSet;
+
 /**
  * 
  */
@@ -9,7 +11,6 @@
 public class AlphaBetaSearch {
 	
 	private Coordinate bestMove;
-	private Board gameBoard;
 	private int timeLimit;
 	private long startTime;
 	
@@ -21,13 +22,12 @@ public class AlphaBetaSearch {
 		return this.bestMove;
 	}
 	
-	public void Search(Board gameBoard)
+	public void Search(Player maxPlayer, Board gameBoard)
 	{
-		this.gameBoard = gameBoard;
-		IterativeDeepening(gameBoard, Integer.MIN_VALUE, Integer.MAX_VALUE);
+		IterativeDeepening(maxPlayer, gameBoard, Integer.MIN_VALUE, Integer.MAX_VALUE);
 	}
 	
-	private void IterativeDeepening(Board board, int alpha, int beta)
+	private void IterativeDeepening(Player maxPlayer, Board board, int alpha, int beta)
 	{
 		/*
 		 * Similar to MaxValue except it is unique, used as the start of the search
@@ -35,91 +35,121 @@ public class AlphaBetaSearch {
 		 * it is the implementation of Iterative Deepening
 		 */
 		this.startTime = System.currentTimeMillis();
-		int depth = 1;
+		int depth = 5;
 		int value = Integer.MIN_VALUE;
+		int totalMoves = board.getUsedCoordinates();
+		int depthLimit = 64 - totalMoves;
 		
-		while (true)
-		{
-			for (Coordinate nextMove : board.getComputerSuccessors()) 
+		Player nextPlayer;
+		HashSet<Coordinate> nextMoves;
+		if(maxPlayer == Player.Opponent) {
+			nextPlayer = Player.Computer;
+			nextMoves = board.getOpponentSuccessors();
+		}
+		else {
+			nextPlayer = Player.Opponent;
+			nextMoves = board.getComputerSuccessors();
+		}
+		
+		try {
+			while (true)
 			{
-				board.move(Player.Computer, nextMove);
-				value = Math.max(value, MinValue(Player.Opponent, alpha, beta, depth-1));
-				if (value > alpha)
+				for (Coordinate nextMove : nextMoves) 
 				{
-					alpha = value;
-					bestMove = nextMove;
+					if(System.currentTimeMillis() - startTime > (this.timeLimit * 1000)) 
+						throw new InterruptedException();
+					board.move(maxPlayer, nextMove);
+					value = Math.max(value, MinValue(nextPlayer, board, alpha, beta, depth-1));
+					if (value > alpha)
+					{
+						alpha = value;
+						bestMove = nextMove;
+					}
+					board.undoMove();
 				}
-				board.undoMove(Player.Computer);
+				System.out.println("Depth " + depth + " took " + (System.currentTimeMillis()-startTime) + " milliseconds");
+				depth++;
+				if(depth > depthLimit)
+					break;
 			}
-			System.out.println("Depth " + depth + " took " + (System.currentTimeMillis()-startTime) + " milliseconds");
-			depth++;
-			if(depth > 5) // System.currentTimeMillis() - startTime > (this.timeLimit * 1000)
-				break;
+		} catch (InterruptedException e) {
+			while(board.getUsedCoordinates() > totalMoves)
+				board.undoMove();
+			return;
 		}
 	}
 	
-	private int MaxValue(Player maxPlayer, int alpha, int beta, int depth)
+	private int MaxValue(Player maxPlayer, Board board, int alpha, int beta, int depth) throws InterruptedException
 	{
-		if(System.currentTimeMillis() - startTime > (this.timeLimit * 1000)) {/* Placeholder */}
-			// return with the best move or throw exception
+		if(System.currentTimeMillis() - startTime > (this.timeLimit * 1000)) 
+			throw new InterruptedException();
 		
 		int value = Integer.MIN_VALUE;
 		
-		if (gameBoard.isTerminal() || depth == 0) {
-			//gameBoard.undoMove(maxPlayer);
-			return gameBoard.getScore();
-		}
+		if (board.isTerminal())
+			return board.getScore()*2;
+		if (depth == 0) 
+			return board.getScore();
 		
 		Player nextPlayer;
-		if(maxPlayer == Player.Opponent)
+		HashSet<Coordinate> nextMoves;
+		if(maxPlayer == Player.Opponent) {
 			nextPlayer = Player.Computer;
-		else
+			nextMoves = board.getOpponentSuccessors();
+		}
+		else {
 			nextPlayer = Player.Opponent;
+			nextMoves = board.getComputerSuccessors();
+		}
 		
-		for (Coordinate nextMove : gameBoard.getComputerSuccessors()) 
+		for (Coordinate nextMove : nextMoves) 
 		{
-			gameBoard.move(maxPlayer, nextMove);
-			value = Math.max(value, MinValue(nextPlayer, alpha, beta, depth-1));
+			board.move(maxPlayer, nextMove);
+			value = Math.max(value, MinValue(nextPlayer, board, alpha, beta, depth-1));
 			if (value >= beta) {
-				gameBoard.undoMove(maxPlayer);
+				board.undoMove();
 				break;
 			}
 			alpha = Math.max(alpha, value);
-			gameBoard.undoMove(maxPlayer);
+			board.undoMove();
 		}
 		return value;
 	}
 	
-	private int MinValue(Player minPlayer, int alpha, int beta, int depth)
+	private int MinValue(Player minPlayer, Board board, int alpha, int beta, int depth) throws InterruptedException
 	{
-		if(System.currentTimeMillis() - startTime > (this.timeLimit * 1000)) {/* Placeholder */}
-		// return with the best move or throw exception
+		if(System.currentTimeMillis() - startTime > (this.timeLimit * 1000))
+			throw new InterruptedException();
 		
 		int value = Integer.MAX_VALUE;
 		
-		if (gameBoard.isTerminal() || depth == 0) {
-			//gameBoard.undoMove(minPlayer);
-			return gameBoard.getScore();
-		}
+		if (board.isTerminal())
+			return board.getScore()*2;
+		if (depth == 0) 
+			return board.getScore();
 		
 		Player nextPlayer;
-		if(minPlayer == Player.Opponent)
+		HashSet<Coordinate> nextMoves;
+		if(minPlayer == Player.Opponent) {
 			nextPlayer = Player.Computer;
-		else
+			nextMoves = board.getOpponentSuccessors();
+		}
+		else {
 			nextPlayer = Player.Opponent;
+			nextMoves = board.getComputerSuccessors();
+		}
 		
-		for (Coordinate nextMove : gameBoard.getOpponentSuccessors())
+		for (Coordinate nextMove : nextMoves)
 		{
-			gameBoard.move(minPlayer, nextMove);
-			value = Math.min(value, MaxValue(nextPlayer, alpha, beta, depth-1));
+			board.move(minPlayer, nextMove);
+			value = Math.min(value, MaxValue(nextPlayer, board, alpha, beta, depth-1));
 			if (value <= alpha) {
-				gameBoard.undoMove(minPlayer);
+				board.undoMove();
 				break;
 			}
 			beta = Math.min(beta, value);
-			gameBoard.undoMove(minPlayer);
+			board.undoMove();
 		}
 		return value;
 	}
 }
-

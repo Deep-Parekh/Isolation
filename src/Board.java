@@ -11,7 +11,7 @@ import java.util.Stack;
  * @author dparekh
  *
  */
-public class Board {
+public class Board{
 	
 	public static final int SIZE = 8;
 	public static final char EMPTY = '-';
@@ -22,6 +22,7 @@ public class Board {
 	private char[][] state;
 	private Stack<Coordinate> computer;
 	private Stack<Coordinate> opponent;
+	private Player first;
 	private int score;
 	private HeuristicManager heuristicManager;
 	private HashSet<Coordinate> opponentSuccessors;
@@ -46,7 +47,8 @@ public class Board {
 			this.opponent.push(new Coordinate((byte)7, (byte)7));
 			this.state[7][7] = Board.O;
 		}
-		this.heuristicManager = new HeuristicManager("OffensiveToDefensive");
+		this.first = first;
+		this.heuristicManager = new HeuristicManager(HeuristicManager.BLOCKING);
 		this.hasChanged = true;
 		this.usedCoordinates = 2;
 	}
@@ -62,6 +64,11 @@ public class Board {
 	public char[][] getState(){
 		return this.state;
 	}
+	
+//	public HashSet<Coordinate> getSuccessors(){
+//		if(this.hasChanged)
+//			this.successors = this.getNextMoves();
+//	}
 	
 	public HashSet<Coordinate> getOpponentSuccessors(){
 		if(this.hasChanged) 
@@ -119,25 +126,28 @@ public class Board {
 			this.opponent.push(move);
 			this.state[move.x][move.y] = O;
 		}
-		this.hasChanged = true;
+		if(!this.hasChanged)
+			this.hasChanged = true;
 		++this.usedCoordinates;
 	}
 	
-	public void undoMove(Player player) {
+	public void undoMove() {
 		Coordinate currentPlayer = null;
-		if (player==Player.Computer) {
+		if ((this.computer.size() == this.opponent.size() && this.first == Player.Computer) || this.computer.size() > this.opponent.size()) {
 			currentPlayer = this.computer.peek();
 			this.state[currentPlayer.x][currentPlayer.y] = EMPTY;
 			this.computer.pop();
 			currentPlayer = this.computer.peek();
 			this.state[currentPlayer.x][currentPlayer.y] = X;
-		}else{
+		}else if((this.computer.size() == this.opponent.size() && this.first == Player.Opponent) || this.computer.size() < this.opponent.size()){
 			currentPlayer = this.opponent.peek();
 			this.state[currentPlayer.x][currentPlayer.y] = EMPTY;
 			this.opponent.pop();
+			currentPlayer = this.opponent.peek();
 			this.state[currentPlayer.x][currentPlayer.y] = O;
 		}
-		this.hasChanged = true;
+		if(!this.hasChanged)
+			this.hasChanged = true;
 		--this.usedCoordinates;
 	}
 	
@@ -158,16 +168,16 @@ public class Board {
 		return false;
 	}
 	
-	public HashSet<Coordinate> getNextMoves(Player player){
+	public HashSet<Coordinate> getNextMoves(Player currentPlayer){
 		HashSet<Coordinate> neighbors = new HashSet<Coordinate>();
 		byte x, y = 0;
-		if(player.equals(Player.Computer)) {
-			x = this.computer.peek().x;
-			y = this.computer.peek().y;
-		}
-		else {
+//		if(this.computer.size() > this.opponent.size() || (this.computer.size() == this.opponent.size() && this.first == Player.Computer)) {
+		if(currentPlayer == Player.Opponent) {
 			x = this.opponent.peek().x;
 			y = this.opponent.peek().y;
+		}else {
+			x = this.computer.peek().x;
+			y = this.computer.peek().y;
 		}
 		
 		// Down
