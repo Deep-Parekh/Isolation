@@ -42,7 +42,7 @@ public class IsolationGame {
 		int totalMoves = this.state.getUsedCoordinates();
 		try {
 			if(this.currentPlayer == Player.Opponent)
-				move = getOpponentMove();		//maxMove(currentPlayer); // for AI vs AI(buggy)
+				move = maxMove(currentPlayer);		//getOpponentMove();		//maxMove(currentPlayer); for AI vs AI
 			else 
 				move = maxMove(currentPlayer);
 			state.move(this.currentPlayer, move);
@@ -56,7 +56,6 @@ public class IsolationGame {
 		} catch (Exception e) {
 			System.out.println(e.getMessage());
 		}
-			
 	}
 	
 	/* 

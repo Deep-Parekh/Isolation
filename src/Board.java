@@ -132,23 +132,34 @@ public class Board{
 	}
 	
 	public void undoMove() {
-		Coordinate currentPlayer = null;
-		if ((this.computer.size() == this.opponent.size() && this.first == Player.Computer) || this.computer.size() > this.opponent.size()) {
-			currentPlayer = this.computer.peek();
-			this.state[currentPlayer.x][currentPlayer.y] = EMPTY;
-			this.computer.pop();
-			currentPlayer = this.computer.peek();
-			this.state[currentPlayer.x][currentPlayer.y] = X;
-		}else if((this.computer.size() == this.opponent.size() && this.first == Player.Opponent) || this.computer.size() < this.opponent.size()){
-			currentPlayer = this.opponent.peek();
-			this.state[currentPlayer.x][currentPlayer.y] = EMPTY;
-			this.opponent.pop();
-			currentPlayer = this.opponent.peek();
-			this.state[currentPlayer.x][currentPlayer.y] = O;
+		if (this.usedCoordinates%2 == 0) {
+			if(this.first == Player.Opponent)
+				removeComputer();
+			else
+				removeOpponent();
+		} else {
+			if(this.first == Player.Opponent)
+				removeOpponent();
+			else
+				removeComputer();
 		}
 		if(!this.hasChanged)
 			this.hasChanged = true;
 		--this.usedCoordinates;
+	}
+	
+	private void removeOpponent() {
+		Coordinate currentPlayer = this.opponent.pop();
+		this.state[currentPlayer.x][currentPlayer.y] = EMPTY;
+		currentPlayer = this.opponent.peek();
+		this.state[currentPlayer.x][currentPlayer.y] = O;
+	}
+	
+	private void removeComputer() {
+		Coordinate currentPlayer = this.computer.pop();
+		this.state[currentPlayer.x][currentPlayer.y] = EMPTY;
+		currentPlayer = this.computer.peek();
+		this.state[currentPlayer.x][currentPlayer.y] = X;
 	}
 	
 	public char getCoordinate(Coordinate coordinate) {

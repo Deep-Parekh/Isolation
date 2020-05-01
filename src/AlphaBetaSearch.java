@@ -69,9 +69,10 @@ public class AlphaBetaSearch {
 				}
 				System.out.println("Depth " + depth + " took " + (System.currentTimeMillis()-startTime) + " milliseconds");
 				depth++;
-				if(depth > depthLimit)
+				if(depth > depthLimit) 	// depth > depthLimit
 					break;
 			}
+//		} catch(Exception e) {
 		} catch (InterruptedException e) {
 			while(board.getUsedCoordinates() > totalMoves)
 				board.undoMove();
