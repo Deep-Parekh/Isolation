@@ -34,8 +34,8 @@ public class HeuristicManager {
 	public Heuristic getHeuristic(int totalMoves) {
 		if(strategy.equals(OFFENSIVE) || strategy.equals(DEFENSIVE) || strategy.equals(BLOCKING))
 			return this.heuristics.get(strategy);
-		if(totalMoves > 32) {
-			if(this.strategy.startsWith(OFFENSIVE)) 
+		if(totalMoves > 16 && totalMoves < 48) {
+			if(this.strategy.startsWith(OFFENSIVE) || this.strategy.startsWith(BLOCKING)) 
 				return this.heuristics.get(DEFENSIVE);
 			else
 				return this.heuristics.get(OFFENSIVE);

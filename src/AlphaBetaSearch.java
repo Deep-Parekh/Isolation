@@ -22,12 +22,12 @@ public class AlphaBetaSearch {
 		return this.bestMove;
 	}
 	
-	public void Search(Player maxPlayer, Board gameBoard)
+	public void search(Player maxPlayer, Board gameBoard)
 	{
-		IterativeDeepening(maxPlayer, gameBoard, Integer.MIN_VALUE, Integer.MAX_VALUE);
+		iterativeDeepening(maxPlayer, gameBoard, Integer.MIN_VALUE, Integer.MAX_VALUE);
 	}
 	
-	private void IterativeDeepening(Player maxPlayer, Board board, int alpha, int beta)
+	private void iterativeDeepening(Player maxPlayer, Board board, int alpha, int beta)
 	{
 		/*
 		 * Similar to MaxValue except it is unique, used as the start of the search
@@ -35,9 +35,10 @@ public class AlphaBetaSearch {
 		 * it is the implementation of Iterative Deepening
 		 */
 		this.startTime = System.currentTimeMillis();
-		int depth = 5;
-		int value = Integer.MIN_VALUE;
+		int depth = 6;
 		int totalMoves = board.getUsedCoordinates();
+		
+		int value = Integer.MIN_VALUE;
 		int depthLimit = 64 - totalMoves;
 		
 		Player nextPlayer;
@@ -59,7 +60,7 @@ public class AlphaBetaSearch {
 					if(System.currentTimeMillis() - startTime > (this.timeLimit * 1000)) 
 						throw new InterruptedException();
 					board.move(maxPlayer, nextMove);
-					value = Math.max(value, MinValue(nextPlayer, board, alpha, beta, depth-1));
+					value = Math.max(value, minValue(nextPlayer, board, alpha, beta, depth-1));
 					if (value > alpha)
 					{
 						alpha = value;
@@ -67,12 +68,10 @@ public class AlphaBetaSearch {
 					}
 					board.undoMove();
 				}
-				System.out.println("Depth " + depth + " took " + (System.currentTimeMillis()-startTime) + " milliseconds");
 				depth++;
 				if(depth > depthLimit) 	// depth > depthLimit
 					break;
 			}
-//		} catch(Exception e) {
 		} catch (InterruptedException e) {
 			while(board.getUsedCoordinates() > totalMoves)
 				board.undoMove();
@@ -80,7 +79,7 @@ public class AlphaBetaSearch {
 		}
 	}
 	
-	private int MaxValue(Player maxPlayer, Board board, int alpha, int beta, int depth) throws InterruptedException
+	private int maxValue(Player maxPlayer, Board board, int alpha, int beta, int depth) throws InterruptedException
 	{
 		if(System.currentTimeMillis() - startTime > (this.timeLimit * 1000)) 
 			throw new InterruptedException();
@@ -106,7 +105,7 @@ public class AlphaBetaSearch {
 		for (Coordinate nextMove : nextMoves) 
 		{
 			board.move(maxPlayer, nextMove);
-			value = Math.max(value, MinValue(nextPlayer, board, alpha, beta, depth-1));
+			value = Math.max(value, minValue(nextPlayer, board, alpha, beta, depth-1));
 			if (value >= beta) {
 				board.undoMove();
 				break;
@@ -117,7 +116,7 @@ public class AlphaBetaSearch {
 		return value;
 	}
 	
-	private int MinValue(Player minPlayer, Board board, int alpha, int beta, int depth) throws InterruptedException
+	private int minValue(Player minPlayer, Board board, int alpha, int beta, int depth) throws InterruptedException
 	{
 		if(System.currentTimeMillis() - startTime > (this.timeLimit * 1000))
 			throw new InterruptedException();
@@ -143,7 +142,7 @@ public class AlphaBetaSearch {
 		for (Coordinate nextMove : nextMoves)
 		{
 			board.move(minPlayer, nextMove);
-			value = Math.min(value, MaxValue(nextPlayer, board, alpha, beta, depth-1));
+			value = Math.min(value, maxValue(nextPlayer, board, alpha, beta, depth-1));
 			if (value <= alpha) {
 				board.undoMove();
 				break;

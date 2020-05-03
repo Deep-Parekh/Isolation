@@ -48,7 +48,7 @@ public class Board{
 			this.state[7][7] = Board.O;
 		}
 		this.first = first;
-		this.heuristicManager = new HeuristicManager(HeuristicManager.BLOCKING);
+		this.heuristicManager = new HeuristicManager("BlockingDefensive");
 		this.hasChanged = true;
 		this.usedCoordinates = 2;
 	}
@@ -64,11 +64,6 @@ public class Board{
 	public char[][] getState(){
 		return this.state;
 	}
-	
-//	public HashSet<Coordinate> getSuccessors(){
-//		if(this.hasChanged)
-//			this.successors = this.getNextMoves();
-//	}
 	
 	public HashSet<Coordinate> getOpponentSuccessors(){
 		if(this.hasChanged) 
@@ -182,7 +177,6 @@ public class Board{
 	public HashSet<Coordinate> getNextMoves(Player currentPlayer){
 		HashSet<Coordinate> neighbors = new HashSet<Coordinate>();
 		byte x, y = 0;
-//		if(this.computer.size() > this.opponent.size() || (this.computer.size() == this.opponent.size() && this.first == Player.Computer)) {
 		if(currentPlayer == Player.Opponent) {
 			x = this.opponent.peek().x;
 			y = this.opponent.peek().y;

@@ -42,7 +42,7 @@ public class IsolationGame {
 		int totalMoves = this.state.getUsedCoordinates();
 		try {
 			if(this.currentPlayer == Player.Opponent)
-				move = maxMove(currentPlayer);		//getOpponentMove();		//maxMove(currentPlayer); for AI vs AI
+				move = getOpponentMove();		
 			else 
 				move = maxMove(currentPlayer);
 			state.move(this.currentPlayer, move);
@@ -62,7 +62,7 @@ public class IsolationGame {
 	 * MiniMax with AlphaBeta pruning and Iterative Deepening
 	 */
 	private Coordinate maxMove(Player maxPlayer) {
-		searcher.Search(maxPlayer, this.state);
+		searcher.search(maxPlayer, this.state);
 		return searcher.getBestMove();
 	}
 
@@ -89,7 +89,7 @@ public class IsolationGame {
 		return move;
 	}
 	
-	public Coordinate convertMove(String coordinate){
+	private Coordinate convertMove(String coordinate){
 		char alphabet = coordinate.charAt(0);
 		byte x = (byte) (alphabet - 'A');
 		byte y = (byte) (coordinate.charAt(1) - '1');
